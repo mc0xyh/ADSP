@@ -205,3 +205,44 @@ class MapViewer():
 
         self.image_pil = self.image_pil.copy()
         self.displayImage(self.imageViewer, self.image_pil, self.size)
+
+    def navigateBotton(self):
+        # 在这里处理按钮点击事件，例如获取输入框的值
+        input1_value = self.input1.get()
+        input2_value = self.input2.get()
+        try:
+            path = self.map.getPath(input1_value, input2_value)
+            print(path)
+            self.refresh()
+            self.draw(path)
+            self.showPathList(self.sf, self.sf_list, self.sf_label, path)
+        except ads.LocationError:
+            self.a = Messagebox.show_error("你的起点/终点输入有误", title='你的起点/终点输入有误', parent=self.root)
+    
+    def visitBotton(self):
+        pass
+    
+    def showPathList(self, sf, sf_list, sf_label, path):
+        for widget in sf.winfo_children():
+            widget.destroy()
+        
+        sf_list.clear()
+        sf_label.config(text=f"查询成功！\n当前路径{round(path.distance, 2)}米。")
+        for _ in range(len(path.path)):
+            sf_list.append(ttk.Frame(sf))
+        
+        for i in range(len(path.path)):
+            sf_list[i].pack(side=ttk.TOP)
+            ttk.Label(sf_list[i], image=self.sf_pic1 if i==0 else self.sf_pic2 if i!=len(path.path)-1 else self.sf_pic3).pack(side=ttk.LEFT)
+            ttk.Label(sf_list[i], text=f"{path.path[i].name if path.path[i].name != None else '(路口)'}", font=("微软雅黑 Bold", 11), width=12).pack(side=ttk.LEFT, padx=5, pady=5)
+            ttk.Label(sf_list[i], text=f"{path.path[i].neighbours[path.path[i+1]] if i<len(path.path)-1 else ''}米", font=("微软雅黑 Light", 9), width=8).pack()
+
+
+    def refresh(self):
+        self.image_pil = Image.open("map.jpg") # 加载图片，待优化
+        self.displayImage(self.imageViewer, self.image_pil, self.size) # 图片展示
+       
+
+if "__main__" == __name__:
+    window = MapViewer("map.jpg")
+
