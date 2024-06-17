@@ -185,23 +185,18 @@ class MapViewer():
     def draw(self, Path):
         point = [(node.x,node.y) for node in Path.path]
         draw = ImageDraw.Draw(self.image_pil)
-        font = ImageFont.truetype("msyhl.ttc", 45)
         
         for i in range(len(point)-1):
             draw.line([point[i], point[i+1]], fill="#24adf3", width=8)
 
         for node in Path.path:
-            draw.ellipse((node.x-10, node.y-10, node.x+10, node.y+10), fill="#2780e3")
+            if node != Path.start and node != Path.end:
+                draw.ellipse((node.x-10, node.y-10, node.x+10, node.y+10), fill="#2780e3")
+                draw.text((node.x, node.y), node.name if node.name!= None else '', fill="#2780e3", font=ImageFont.truetype("msyh.ttc", 40))
+            else:
+                draw.text((node.x, node.y), node.name, fill="#2780e3", font=ImageFont.truetype("msyh.ttc", 42))
+                draw.ellipse((node.x-15, node.y-15, node.x+15, node.y+15), fill="#2780e3")
 
-        start_x, start_y = Path.start.x, Path.start.y
-        draw.text((start_x, start_y), Path.start.name, fill="#2780e3", font=font)
-        draw.ellipse((start_x-15, start_y-15, start_x+15, start_y+15), fill="#2780e3")
-
-        if Path.end != None:
-            end_x, end_y = Path.end.x, Path.end.y
-            draw.text((end_x, end_y), Path.end.name, fill="#2780e3", font=font)
-            draw.ellipse((end_x-15, end_y-15, end_x+15, end_y+15), fill="#2780e3")
-        
 
         self.image_pil = self.image_pil.copy()
         self.displayImage(self.imageViewer, self.image_pil, self.size)
@@ -227,7 +222,7 @@ class MapViewer():
             widget.destroy()
         
         sf_list.clear()
-        sf_label.config(text=f"查询成功！\n当前路径{round(path.distance, 2)}米。")
+        sf_label.config(text=f"查询成功！\n当前路径{round(path.distance, 1)}米。")
         for _ in range(len(path.path)):
             sf_list.append(ttk.Frame(sf))
         
