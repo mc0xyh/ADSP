@@ -235,7 +235,7 @@ class MapViewer():
             sf_list[i].pack(side=ttk.TOP)
             ttk.Label(sf_list[i], image=self.sf_pic1 if i==0 else self.sf_pic2 if i!=len(path.path)-1 else self.sf_pic3).pack(side=ttk.LEFT)
             ttk.Label(sf_list[i], text=f"{path.path[i].name if path.path[i].name != None else '(路口)'}", font=("微软雅黑 Bold", 11), width=12).pack(side=ttk.LEFT, padx=5, pady=5)
-            ttk.Label(sf_list[i], text=f"{path.path[i].neighbours[path.path[i+1]] if i<len(path.path)-1 else ''}米", font=("微软雅黑 Light", 9), width=8).pack()
+            ttk.Label(sf_list[i], text=f"{path.path[i].neighbours[path.path[i+1]]}米" if i<len(path.path)-1 else '', font=("微软雅黑 Light", 9), width=8).pack(side=ttk.LEFT, padx=5, pady=5)
 
 
     def refresh(self):
