@@ -113,58 +113,6 @@ class Graph:
         # 返回所有节点的最短距离和最短路径
         return distances, paths
     
-    def prim(self, start: str) -> dict:
-        """
-        使用Prim算法计算最小生成树（MST）。
-        :return: 一个字典，表示MST中每个节点及其连接的父节点。
-        """
-        start = self.nodes[start]  # 将起点转换为节点对象
-        mst = {}  # 存储最小生成树的父节点关系
-        visited = set()  # 存储已访问的节点
-        edges = [(0, start, None)]  # 初始化堆优先队列，存储边的权重、目标节点及其父节点
-
-        while edges:
-            weight, current_node, parent = heapq.heappop(edges)
-            
-            if current_node in visited:
-                continue
-
-            visited.add(current_node)
-            if parent:
-                mst[current_node] = parent
-
-            # 遍历当前节点的所有邻居节点
-            for neighbour, edge_weight in current_node.neighbours.items():
-                if neighbour not in visited:
-                    # 将邻居节点及其路径成本和当前节点作为父节点加入未访问边的队列
-                    heapq.heappush(edges, (edge_weight, neighbour, current_node))
-        
-        return mst
-
-    def dfs(self, start, mst):
-        """
-        使用深度优先搜索从起点遍历MST，生成遍历路径。
-        :param start: 起点节点对象
-        :param mst: 最小生成树字典
-        :return: 从起点出发的遍历路径列表
-        """
-        visited = set()
-        path = []
-
-        def _dfs(node):
-            if node in visited:
-                return
-            visited.add(node)
-            path.append(node)
-            # 遍历该节点的邻居节点
-            for neighbour in node.neighbours:
-                # 只访问MST中实际连接的邻居
-                if neighbour in mst and mst[neighbour] == node or node in mst and mst[node] == neighbour:
-                    _dfs(neighbour)
-
-        _dfs(start)
-        return path
-
 class Map(Graph):
     def __init__(self):
         super().__init__()
@@ -207,19 +155,33 @@ class Map(Graph):
         return self.hashtable.get(start, end)[0]
     
     def getVisitRoute(self, startname: str) -> Path:
+        around_nodes = ['c16', 'c15', 'c14', 'c13', 'b32', 'c30', 'b56', 'c48', 'c49', 'b57', 'c50', 'c52', 'b71', 'c56', 'b69', 'b70', 'c57', 'c79', 'b82', 'c98', 'c80', 'c88', 'c94', 'b100', 'c89', 'c90', 'c91', 'c73', 'c74', 'c69', 'c68', 'c67', 'c66', 'b78', 'b75', 'b74', 'b73', 'c47', 'b55', 'c41', 'c95', 'b33', 'b52', 'c32', 'b40', 'b37', 'c10', 'b3', 'c9', 'b0', 'c8', 'b7', 'b6', 'c18', 'b20', 'c17']
         try:
-            start = self.name_to_id[startname]
+            startid = self.name_to_id[startname]
         except KeyError:
             raise LocationError("Invalid location")
-        
-        mst = map.prim(start)
-        patha = map.dfs(map.nodes[start], mst)
-        print(" -> ".join(node.name for node in patha if node.type == 1))
+        if startid in around_nodes:
+            pathnodeid = around_nodes[around_nodes.index(startid):] + around_nodes[:around_nodes.index(startid)+1 ]
+            paths = [self.nodes[nodeid] for nodeid in pathnodeid]
+            return Path(self.nodes[startid], self.nodes[startid], paths, 0)
+        else:
+            distances, paths = self.dijkstra(startid)
+            nodes = [self.nodes[nodeid] for nodeid in around_nodes]
+            li = []
+            for to in distances.keys():
+                if to in nodes:
+                    li.append((to, paths[to], distances[to]))
+            li.sort(key=lambda x: x[2])
+            goid = li[0][0].id
+            pathnodeid = around_nodes[around_nodes.index(goid) +1:] + around_nodes[:around_nodes.index(goid) ]
+            paths = li[0][1] + [self.nodes[nodeid] for nodeid in pathnodeid] + list(reversed(li[0][1]))
+            print(paths)
+            return Path(self.nodes[startid], self.nodes[startid], paths, 0)
+
 
 
 
 
 if __name__ == "__main__":
     map = Map()
-
-    map.getVisitRoute("滨江楼")
+    map.greedyPathFrom('文德楼')

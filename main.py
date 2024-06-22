@@ -5,6 +5,7 @@ from ttkbootstrap.dialogs.dialogs import Messagebox
 from PIL import Image, ImageTk, ImageDraw, ImageFont
 import ads
 
+SCALE = 0.39583
 
 class MapViewer():
     def __init__(self, mappath) -> None:
@@ -109,7 +110,6 @@ class MapViewer():
 
         
         self.map = ads.Map()
-
         self.root.mainloop()
         
 
@@ -188,7 +188,7 @@ class MapViewer():
         
         for i in range(len(point)-1):
             draw.line([point[i], point[i+1]], fill="#24adf3", width=8)
-
+            
         for node in Path.path:
             if node != Path.start and node != Path.end:
                 draw.ellipse((node.x-10, node.y-10, node.x+10, node.y+10), fill="#2780e3")
@@ -207,7 +207,6 @@ class MapViewer():
         input2_value = self.input2.get()
         try:
             path = self.map.getPath(input1_value, input2_value)
-            print(path)
             self.refresh()
             self.draw(path)
             self.showPathList(self.sf, self.sf_list, self.sf_label, path)
@@ -215,14 +214,22 @@ class MapViewer():
             self.a = Messagebox.show_error("你的起点/终点输入有误", title='你的起点/终点输入有误', parent=self.root)
     
     def visitBotton(self):
-        pass
+        # 在这里处理按钮点击事件，例如获取输入框的值
+        input_value = self.input3.get()
+        try:
+            path = self.map.getVisitRoute(input_value)
+            self.refresh()
+            self.draw(path)
+            self.showPathList(self.sf, self.sf_list, self.sf_label, path)
+        except ads.LocationError:
+            self.a = Messagebox.show_error("你的起点/终点输入有误", title='你的起点/终点输入有误', parent=self.root)
     
     def showPathList(self, sf, sf_list, sf_label, path):
         for widget in sf.winfo_children():
             widget.destroy()
         
         sf_list.clear()
-        sf_label.config(text=f"查询成功！\n当前路径{round(path.distance, 1)}米。")
+        sf_label.config(text=f"查询成功！\n当前路径{round(path.distance*SCALE, 1)}米。" if path.distance != 0 else '查询游览路径成功！')
         for _ in range(len(path.path)):
             sf_list.append(ttk.Frame(sf))
         
@@ -230,7 +237,7 @@ class MapViewer():
             sf_list[i].pack(side=ttk.TOP)
             ttk.Label(sf_list[i], image=self.sf_pic1 if i==0 else self.sf_pic2 if i!=len(path.path)-1 else self.sf_pic3).pack(side=ttk.LEFT)
             ttk.Label(sf_list[i], text=f"{path.path[i].name if path.path[i].name != None else '(路口)'}", font=("微软雅黑 Bold", 11), width=12).pack(side=ttk.LEFT, padx=5, pady=5)
-            ttk.Label(sf_list[i], text=f"{path.path[i].neighbours[path.path[i+1]]}米" if i<len(path.path)-1 else '', font=("微软雅黑 Light", 9), width=8).pack(side=ttk.LEFT, padx=5, pady=5)
+            ttk.Label(sf_list[i], text=f"{round(path.path[i].neighbours[path.path[i+1]]*SCALE,1)}米" if i<len(path.path)-1 else '', font=("微软雅黑 Light", 9), width=8).pack(side=ttk.LEFT, padx=5, pady=5)
 
 
     def refresh(self):
